@@ -45,18 +45,21 @@ class CuboEnMovimiento {
   constructor(escena) {
     this.escena = escena;
     this.cubo = null;
-    this.velocidad = 0.2;
+    this.velocidad = 0.1;
     this.iniciar();
   }
 
   iniciar() {
     const inicioX = Math.random() < 0.5 ? -40 : 40;
-    const geometria = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+
+    const texturaPato = new THREE.TextureLoader().load('source/duck.png');
     const material = new THREE.MeshStandardMaterial({
-      color: new THREE.Color().setHSL(Math.random(), 0.7, 0.5),
+      map: texturaPato,
       metalness: 0.2,
       roughness: 0.7
     });
+
+    const geometria = new THREE.BoxGeometry(1.5, 1.5, 1.5);
     this.cubo = new THREE.Mesh(geometria, material);
     this.cubo.position.set(inicioX, 5, -30);
     this.escena.add(this.cubo);
@@ -84,6 +87,7 @@ class CuboEnMovimiento {
     }
   }
 }
+
 
 function crearMira() {
   const geometriaAnillo = new THREE.RingGeometry(0.01, 0.02, 32);
