@@ -5,10 +5,10 @@ import { VRButton } from 'three/addons/webxr/VRButton.js';
 const escena = new THREE.Scene();
 const cubosActivos = [];
 let ultimaGeneracion = 0;
-const intervaloCubos = 5000;
+const intervaloCubos = 2500;
 let modeloPato = null;
 
-const camara = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.001, 100);
+const camara = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.001, 100);
 camara.position.set(0, 0, 0);
 
 const renderizador = new THREE.WebGLRenderer({ antialias: true });
@@ -25,7 +25,7 @@ cargarModelos();
 class CuboEnMovimiento {
   constructor(escena) {
     this.escena = escena;
-    this.velocidad = 0.1;
+    this.velocidad = 0.3;
     this.direccion = Math.random() < 0.5 ? 1 : -1;
     this.cubo = new THREE.Mesh(
       new THREE.BoxGeometry(1.5, 1.5, 1.5),
