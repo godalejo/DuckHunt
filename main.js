@@ -52,12 +52,15 @@ class CuboEnMovimiento {
   iniciar() {
     const inicioX = Math.random() < 0.5 ? -40 : 40;
 
-    const texturaPato = new THREE.TextureLoader().load('source/duck.png');
-    const material = new THREE.MeshStandardMaterial({
-      map: texturaPato,
-      metalness: 0.2,
-      roughness: 0.7
-    });
+const texturaPato = new THREE.TextureLoader().load('source/duck.png');
+const material = new THREE.MeshStandardMaterial({
+  map: texturaPato,
+  transparent: true,
+  alphaTest: 0.1,
+  metalness: 0.2,
+  roughness: 0.7
+});
+
 
     const geometria = new THREE.BoxGeometry(1.5, 1.5, 1.5);
     this.cubo = new THREE.Mesh(geometria, material);
