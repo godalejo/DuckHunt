@@ -2,32 +2,32 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 
-const scene = new THREE.Scene();
-const activeCubes = [];
-let lastCubeTime = 0;
-const cubeSpawnInterval = 5000;
-let duckModel = null;
+const escena = new THREE.Scene();
+const cubosActivos = [];
+let ultimaGeneracion = 0;
+const intervaloCubos = 5000;
+let modeloPato = null;
 
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.001, 100);
-camera.position.set(0, 0, 0);
+const camara = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.001, 100);
+camara.position.set(0, 0, 0);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.xr.enabled = true;
-document.body.appendChild(renderer.domElement);
-document.body.appendChild(VRButton.createButton(renderer));
+const renderizador = new THREE.WebGLRenderer({ antialias: true });
+renderizador.setSize(window.innerWidth, window.innerHeight);
+renderizador.xr.enabled = true;
+document.body.appendChild(renderizador.domElement);
+document.body.appendChild(VRButton.createButton(renderizador));
 
-createCrosshair();
-addLights();
-setSkybox();
-loadModels();
+crearMira();
+agregarLuces();
+colocarCielo();
+cargarModelos();
 
-class MovingCube {
-  constructor(scene) {
-    this.scene = scene;
-    this.speed = 0.1;
-    this.direction = Math.random() < 0.5 ? 1 : -1;
-    this.cube = new THREE.Mesh(
+class CuboEnMovimiento {
+  constructor(escena) {
+    this.escena = escena;
+    this.velocidad = 0.1;
+    this.direccion = Math.random() < 0.5 ? 1 : -1;
+    this.cubo = new THREE.Mesh(
       new THREE.BoxGeometry(1.5, 1.5, 1.5),
       new THREE.MeshStandardMaterial({
         color: new THREE.Color().setHSL(Math.random(), 0.7, 0.5),
@@ -35,105 +35,106 @@ class MovingCube {
         roughness: 0.7
       })
     );
-    this.cube.position.set(this.direction > 0 ? -40 : 40, 5, -30);
-    this.scene.add(this.cube);
+    this.cubo.position.set(this.direccion > 0 ? -40 : 40, 5, -30);
+    this.escena.add(this.cubo);
   }
 
-  update() {
-    if (!this.cube) return false;
-    this.cube.position.x += this.speed * this.direction;
-    if (Math.abs(this.cube.position.x) > 50) {
-      this.dispose();
+  actualizar() {
+    if (!this.cubo) return false;
+    this.cubo.position.x += this.velocidad * this.direccion;
+    if (Math.abs(this.cubo.position.x) > 50) {
+      this.eliminar();
       return false;
     }
     return true;
   }
 
-  dispose() {
-    this.scene.remove(this.cube);
-    this.cube.geometry.dispose();
-    this.cube.material.dispose();
-    this.cube = null;
+  eliminar() {
+    this.escena.remove(this.cubo);
+    this.cubo.geometry.dispose();
+    this.cubo.material.dispose();
+    this.cubo = null;
   }
 }
 
-function createCrosshair() {
-  const ring = new THREE.Mesh(
+function crearMira() {
+  const anillo = new THREE.Mesh(
     new THREE.RingGeometry(0.01, 0.02, 32),
     new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.9, transparent: true, depthTest: false })
   );
-  ring.position.z = -2;
+  anillo.position.z = -2;
 
-  const line = new THREE.Line(
+  const linea = new THREE.Line(
     new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, -2), new THREE.Vector3(0, 0, -2.2)]),
     new THREE.LineBasicMaterial({ color: 0xff0000 })
   );
 
-  camera.add(ring);
-  camera.add(line);
-  scene.add(camera);
+  camara.add(anillo);
+  camara.add(linea);
+  escena.add(camara);
 }
 
-function addLights() {
-  scene.add(new THREE.AmbientLight(0x040404));
-  const key = new THREE.DirectionalLight(0xffffff, 1.2);
-  key.position.set(5, 10, 7);
-  scene.add(key);
+function agregarLuces() {
+  escena.add(new THREE.AmbientLight(0x040404));
+  const luzPrincipal = new THREE.DirectionalLight(0xffffff, 1.2);
+  luzPrincipal.position.set(5, 10, 7);
+  escena.add(luzPrincipal);
 
-  const fill = new THREE.DirectionalLight(0xffffff, 0.5);
-  fill.position.set(-5, 5, 5);
-  scene.add(fill);
+  const luzRelleno = new THREE.DirectionalLight(0xffffff, 0.5);
+  luzRelleno.position.set(-5, 5, 5);
+  escena.add(luzRelleno);
 
-  const back = new THREE.DirectionalLight(0xffffff, 0.8);
-  back.position.set(0, 5, -10);
-  scene.add(back);
+  const luzTrasera = new THREE.DirectionalLight(0xffffff, 0.8);
+  luzTrasera.position.set(0, 5, -10);
+  escena.add(luzTrasera);
 }
 
-function setSkybox() {
-  const urls = ['px', 'nx', 'py', 'ny', 'pz', 'nz'].map(side => `cubemap/${side}.png`);
-  const texture = new THREE.CubeTextureLoader().load(urls);
-  scene.background = texture;
+function colocarCielo() {
+  const lados = ['px', 'nx', 'py', 'ny', 'pz', 'nz'].map(lado => `cubemap/${lado}.png`);
+  const textura = new THREE.CubeTextureLoader().load(lados);
+  escena.background = textura;
 }
 
-function loadModels() {
-  const loader = new GLTFLoader();
-  ['arbol', 'arbustos', 'piso', 'cerca'].forEach(name => {
-    loader.load(`source/${name}.glb`, gltf => scene.add(gltf.scene));
+function cargarModelos() {
+  const cargador = new GLTFLoader();
+  ['arbol', 'arbustos', 'piso', 'cerca'].forEach(nombre => {
+    cargador.load(`source/${nombre}.glb`, gltf => escena.add(gltf.scene));
   });
-  loader.load('source/arma.glb', gltf => {
-    camera.add(gltf.scene);
-    scene.add(camera);
+  cargador.load('source/arma.glb', gltf => {
+    camara.add(gltf.scene);
+    escena.add(camara);
   });
-  loader.load('source/duck.glb', gltf => { duckModel = gltf.scene; });
+  cargador.load('source/duck.glb', gltf => { modeloPato = gltf.scene; });
 }
 
-const raycaster = new THREE.Raycaster();
+const rayo = new THREE.Raycaster();
 
-function checkIntersections() {
-  raycaster.setFromCamera({ x: 0, y: 0 }, camera);
-  const intersects = raycaster.intersectObjects(activeCubes.map(c => c.cube));
-  if (intersects.length > 0) {
-    const hit = intersects[0].object;
-    const index = activeCubes.findIndex(c => c.cube === hit);
-    if (index !== -1) {
-      activeCubes[index].dispose();
-      activeCubes.splice(index, 1);
+function revisarIntersecciones() {
+  rayo.setFromCamera({ x: 0, y: 0 }, camara);
+  const intersecciones = rayo.intersectObjects(cubosActivos.map(c => c.cubo));
+  if (intersecciones.length > 0) {
+    const cuboTocado = intersecciones[0].object;
+    const indice = cubosActivos.findIndex(c => c.cubo === cuboTocado);
+    if (indice !== -1) {
+      cubosActivos[indice].eliminar();
+      cubosActivos.splice(indice, 1);
     }
   }
 }
 
-function animate(time) {
-  if (!lastCubeTime || time - lastCubeTime > cubeSpawnInterval) {
-    activeCubes.push(new MovingCube(scene));
-    lastCubeTime = time;
+function animate(tiempo) {
+  if (!ultimaGeneracion || tiempo - ultimaGeneracion > intervaloCubos) {
+    cubosActivos.push(new CuboEnMovimiento(escena));
+    ultimaGeneracion = tiempo;
   }
 
-  for (let i = activeCubes.length - 1; i >= 0; i--) {
-    if (!activeCubes[i].update()) activeCubes.splice(i, 1);
+  for (let i = cubosActivos.length - 1; i >= 0; i--) {
+    if (!cubosActivos[i].actualizar()) cubosActivos.splice(i, 1);
   }
 
-  checkIntersections();
-  renderer.render(scene, camera);
+  revisarIntersecciones();
+  renderizador.render(escena, camara);
 }
 
-renderer.setAnimationLoop(animate);
+renderizador.setAnimationLoop(animate);
+
